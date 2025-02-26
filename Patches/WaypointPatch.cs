@@ -63,6 +63,11 @@ namespace DrakiaXYZ.Waypoints.Patches
             {
                 mapName = "factory4";
             }
+            // Standardize Ground Zero
+            if (mapName.StartsWith("sandbox"))
+            {
+                mapName = "sandbox";
+            }
 
             string navMeshFilename = mapName + "-navmesh.bundle";
             string navMeshPath = Path.Combine(new string[] { WaypointsPlugin.NavMeshFolder, navMeshFilename });
