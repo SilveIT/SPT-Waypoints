@@ -1,4 +1,5 @@
-﻿using Aki.Reflection.Patching;
+﻿using System;
+using Aki.Reflection.Patching;
 using Comfort.Common;
 using EFT;
 using System.Collections.Generic;
@@ -22,33 +23,45 @@ namespace DrakiaXYZ.Waypoints.Patches
         [PatchPostfix]
         public static void PatchPostfix(GameWorld __instance)
         {
-            // Clear before we add anything to it
-            CachedNavPoints.Clear();
-
-            var botGame = Singleton<IBotGame>.Instance;
-            var data = botGame.BotsController.CoversData;
-
-            for (int i = 0; i < data.MaxX; i++)
+            try
             {
-                for (int j = 0; j < data.MaxY; j++)
+                // Clear before we add anything to it
+                CachedNavPoints.Clear();
+
+                var botGame = Singleton<IBotGame>.Instance;
+                var data = botGame?.BotsController?.CoversData;
+
+                if (data == null)
+                    return;
+
+                for (int i = 0; i < data.MaxX; i++)
                 {
-                    for (int k = 0; k < data.MaxZ; k++)
+                    for (int j = 0; j < data.MaxY; j++)
                     {
-                        NavGraphVoxelSimple navGraphVoxelSimple = data.VoxelesArray[i, j, k];
-                        if (navGraphVoxelSimple != null && navGraphVoxelSimple.Points != null)
+                        for (int k = 0; k < data.MaxZ; k++)
                         {
-                            foreach (GroupPoint groupPoint in navGraphVoxelSimple.Points)
+                            NavGraphVoxelSimple navGraphVoxelSimple = data.VoxelesArray[i, j, k];
+                            if (navGraphVoxelSimple != null && navGraphVoxelSimple.Points != null)
                             {
-                                CachedNavPoints.Add(groupPoint.CreateCustomNavigationPoint(0));
+                                foreach (GroupPoint groupPoint in navGraphVoxelSimple.Points)
+                                {
+                                    if (groupPoint != null)
+                                        CachedNavPoints.Add(groupPoint.CreateCustomNavigationPoint(0));
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            foreach (GroupPoint groupPoint in data.AIManualPointsHolder.ManualPoints)
+                if (data.AIManualPointsHolder?.ManualPoints != null)
+                    foreach (GroupPoint groupPoint in data.AIManualPointsHolder.ManualPoints)
+                    {
+                        CachedNavPoints.Add(groupPoint.CreateCustomNavigationPoint(0));
+                    }
+            }
+            catch
             {
-                CachedNavPoints.Add(groupPoint.CreateCustomNavigationPoint(0));
+                // ignored
             }
         }
     }
